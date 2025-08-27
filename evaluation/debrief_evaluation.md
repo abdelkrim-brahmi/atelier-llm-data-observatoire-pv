@@ -4,7 +4,7 @@
 Capitaliser sur l'expérience de l'atelier et définir un plan d'action concret pour intégrer les LLM dans les projets Data quotidiens.
 
 ## ⏱️ Durée
-20 minutes
+30 minutes
 
 ## 🎯 Objectifs
 - Mesurer les acquis techniques et méthodologiques
@@ -20,7 +20,7 @@ Chaque participant complète sa grille personnellement
 ### Phase 2 : Partage en Équipe (7 minutes) 
 Échanges au sein de chaque groupe de 3-4 personnes
 
-### Phase 3 : Synthèse Collective (5 minutes)
+### Phase 3 : Synthèse Collective (15 minutes)
 Restitution des apprentissages clés par groupe
 
 ## ✅ Grille d'Auto-Évaluation
@@ -116,15 +116,8 @@ Restitution des apprentissages clés par groupe
 #### **Tour de Table Structuré (7 minutes)**
 1. **1 minute par personne** : 1 point positif + 1 limite observée
 2. **Pas d'interruption** pendant les interventions individuelles
-3. **Prise de notes** des points communs sur flipchart
+3. **Prise de notes** des points communs
 4. **Questions de clarification** après chaque tour
-
-#### **Débat Mouvant (si temps disponible)**
-Propositions à débattre :
-- "Les LLM vont remplacer 50% du travail des consultants Data"
-- "On peut faire confiance à ChatGPT pour du code SQL critique"
-- "Les clients préféreront des livrables générés par IA"
-- "Il faut toujours valider à 100% les outputs des LLM"
 
 ## 📈 Métriques de Succès de l'Atelier
 
@@ -230,12 +223,6 @@ Propositions à débattre :
 
 ### Message de Fin
 *"Vous venez de découvrir comment les LLM peuvent transformer votre pratique de consultant Data. L'objectif n'est pas de remplacer votre expertise, mais de l'amplifier. Les prochaines semaines seront cruciales : passez de la découverte à la pratique régulière. L'avantage concurrentiel appartient à ceux qui maîtrisent cette collaboration homme-machine."*
-
-### Ressources Complémentaires
-- **Repository GitHub :** [Lien vers le repository complet]
-- **Slack Channel :** #practice-data-ia pour partager vos expériences
-- **Prochains ateliers :** Planning des sessions de perfectionnement
-- **Support :** Contact des animateurs pour accompagnement
 
 ### Évaluation de l'Atelier
 **QR Code vers formulaire d'évaluation :**
