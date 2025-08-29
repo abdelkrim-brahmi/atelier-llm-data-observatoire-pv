@@ -110,7 +110,7 @@ Ajoute une section évolutivité :
 ## 📋 Structure de Réponse Attendue
 
 Afin de nous aligner sur les étapes suivantes :
-- **Exemple d'analyse de source** :  [datawarehouse_conception_pv](../../sample%20results/datawarehouse_conception_pv.md)
+- **Exemple d'analyse de source** :  [datawarehouse_conception_pv](../../sample%20results/analyse_sources_resultat.md)
 
 
 ## 🔍 Points de Vigilance

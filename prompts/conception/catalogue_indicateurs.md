@@ -156,6 +156,13 @@ Personnalise pour les enjeux de politique publique :
 | Densité PV Régionale | Territoire | P1 | MW/km² par région | Calcul | Saturation |
 | Croissance Trimestrielle | Capacité | P1 | Evolution n vs n-1 | RTE | Dynamique |
 
+
+## 📋 Résultat Attendu
+
+Afin de nous aligner sur les étapes suivantes :
+- **Exemple de catalogue d'indicateurs** :  [catalogue_kpis_photovoltaique](../../sample%20results/catalogue_kpis_resultat.md)
+
+
 ## ⚠️ Pièges à Éviter
 
 - **Indicateurs trop génériques** : Éviter les métriques valables pour toutes les énergies

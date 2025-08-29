@@ -97,7 +97,7 @@ Propose des fonctionnalités IA intégrées au dashboard :
 
 ## 💡 Point d'Attention
 
-N'hésitez pas à demander des wireframes en mode texte ASCII - ChatGPT est très efficace pour créer des représentations visuelles simples mais parlantes.
+N'hésitez pas à demander des wireframes en mode texte ASCII - les LLM sont très efficaces pour créer des représentations visuelles simples mais parlantes.
 
 ## 📐 Exemple de Wireframe ASCII
 
@@ -129,54 +129,16 @@ N'hésitez pas à demander des wireframes en mode texte ASCII - ChatGPT est trè
 └─────────────────────────────────────────────────┘
 ```
 
+## 📋 Structure de Réponse Attendue
+
+Afin de nous aligner sur les étapes suivantes :
+- **Exemple de design de dashboard** :  [dashboard_ux_concept](../../sample%20results/dashboard_ux_conception.md)
+
+
 ## 🎨 Guidelines de Design
 
-### Palette de Couleurs Recommandée
-- **Primaire :** Bleu énergétique (#0066CC) pour données positives
-- **Secondaire :** Orange solaire (#FF9900) pour alertes et focus
-- **Tertiaire :** Vert croissance (#00AA44) pour indicateurs positifs
-- **Neutre :** Gris (#666666) pour données contextuelles
-- **Alerte :** Rouge (#CC0000) pour risques et anomalies
-
-### Typographie
-- **Titres :** Police sans-serif, bold, taille 18-24px
-- **Métriques :** Police mono-space pour alignement des chiffres
-- **Labels :** Police standard, taille 12-14px, contraste élevé
-
-## 📱 Responsive Design
-
-### Adaptation Mobile/Tablette
-```
-┌─────────────────────┐
-│  ☰ OBSERVATOIRE PV  │
-├─────────────────────┤
-│                     │
-│ ┌─────────────────┐ │
-│ │    15.2 GW      │ │
-│ │ Total installé  │ │
-│ └─────────────────┘ │
-│                     │
-│ ┌─────────────────┐ │
-│ │     +12.3%      │ │
-│ │   Croissance    │ │
-│ └─────────────────┘ │
-│                     │
-│ ┌─────────────────┐ │
-│ │   [Carte Mini]  │ │
-│ │   Tap to zoom   │ │
-│ └─────────────────┘ │
-│                     │
-│ [ Voir détails > ]  │
-└─────────────────────┘
-```
-
-## 🔄 Interactions Clés
-
-1. **Click sur KPI** → Drill-down vers détail régional
-2. **Hover sur carte** → Tooltip avec métriques locales  
-3. **Sélection période** → Mise à jour temps réel de tous les graphiques
-4. **Export** → Génération PDF executive summary
-5. **Partage** → Lien sécurisé vers vue spécifique
+- **Tips for designing a great Power BI dashboard :**  [Learning Microsoft](https://learn.microsoft.com/en-us/power-bi/create-reports/service-dashboards-design-tips)
+- **Power BI visualization best practices by Marco Russo :** [Learning Youtube](https://www.youtube.com/watch?v=-tdkUYrzrio)
 
 ## 📊 Templates de Visualisations
 

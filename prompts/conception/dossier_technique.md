@@ -112,42 +112,12 @@ Enrichis la section architecture technique avec :
 - Coûts d'infrastructure prévisionnels sur 3 ans
 ```
 
-## 📋 Template de Structure Attendue
+## 📋 Résultat Attendu
 
-```markdown
-# DOSSIER DE CONCEPTION - OBSERVATOIRE PHOTOVOLTAÏQUE
+Afin de nous aligner sur les étapes suivantes :
+- **Exemple de dossier technique produit** :  [dossier_technique](../../sample%20results/dossier_technique_resultat.md
 
-## 1. VISION & OBJECTIFS STRATÉGIQUES
 
-### 1.1 Enjeux Business
-- Positionnement concurrentiel sur le marché PV français (45 GW d'objectifs PPE 2028)
-- Optimisation des investissements par identification des zones à fort potentiel
-- [...]
-
-### 1.2 Utilisateurs Cibles
-- **Dirigeants** : Vision stratégique et pilotage des investissements
-- **Directeurs Commerciaux** : Ciblage territorial et opportunités marché
-- [...]
-
-### 1.3 KPIs de Succès Projet
-- Réduction de 30% du time-to-market pour les nouvelles implantations
-- Amélioration de 15% du ROI des investissements territoriaux
-- [...]
-
-## 2. ARCHITECTURE FONCTIONNELLE
-
-### 2.1 Flux de Données
-```
-[Sources] → [Ingestion] → [Transformation] → [Stockage] → [Restitution]
-```
-
-### 2.2 Stack Technique Recommandé
-- **Ingestion** : Snowflake + APIs publiques (RTE, ODRE)
-- **Transformation** : dbt + Snowflake compute
-- [...]
-
-[etc.]
-```
 
 ## ⚡ Conseils d'Optimisation
 

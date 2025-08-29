@@ -22,7 +22,7 @@ Apprendre à utiliser efficacement [Copilot](https://copilot.cloud.microsoft) po
 #### 1.1 Dossier de Conception Technique (20 min)
 - **Objectif :** Produire un document de conception de 3-4 pages
 - **Rôle :** Data Architect senior
-- **Guide :** 👉 [Dossier Technique](./prompts/conception/dossier_technhique.md)
+- **Guide :** 👉 [Dossier Technique](./prompts/conception/dossier_technique.md)
 
 #### 1.2 Catalogue d'Indicateurs Métier (20 min)
 - **Objectif :** Créer ~10 indicateurs KPIs documentés
