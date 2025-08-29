@@ -2,7 +2,7 @@
 ## Cas d'usage : Observatoire Photovoltaïque France 🌞
 
 ### 🎯 Objectif
-Apprendre à utiliser efficacement les Copilot (https://copilot.cloud.microsoft) pour accélérer les projets Data Engineering, de la conception à la livraison client.
+Apprendre à utiliser efficacement [Copilot intégré à Microsoft 365](https://copilot.cloud.microsoft) pour accélérer les projets Data Engineering, de la conception à la livraison client.
 
 ### ⏱️ Format
 - **Durée :** 4 heures
