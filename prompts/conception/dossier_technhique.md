@@ -10,8 +10,8 @@ Produire rapidement un dossier de conception technique professionnel pour initia
 Data Architect senior avec expertise projets énergétiques
 
 ## 📄 Livrable Attendu
-Document de conception de 3-4 pages structuré et prêt pour présentation client
-Production du document sur la base du [Template Word](https://teamworkfr.sharepoint.com/:w:/r/TeamWork/TWGroup/Marketing/Templates/Word/TW_Template_Word_light_FR.dotx?d=w264b56caaa234cc78f43cfc3cc1c47ca&csf=1&web=1&e=LkYMtX) disponible sur Sharepoint.
+- Document de conception de 3-4 pages structuré et prêt pour présentation client.
+- Production du document sur la base du [Template Word](https://teamworkfr.sharepoint.com/:w:/r/TeamWork/TWGroup/Marketing/Templates/Word/TW_Template_Word_light_FR.dotx?d=w264b56caaa234cc78f43cfc3cc1c47ca&csf=1&web=1&e=LkYMtX) disponible sur Sharepoint.
 
 ## 🤖 Prompt à Copier-Coller
 

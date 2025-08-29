@@ -47,7 +47,7 @@ MISSION : Conçois l'architecture complète du dashboard
    - Interactivité et drill-down
 
 4. RECOMMANDATIONS TECHNIQUES
-   - Outil de restitution recommandé (Power BI, Tableau, Qlik)
+   - Outil de restitution recommandé (Power BI)
    - Architecture technique (temps réel vs batch)
    - Gestion des droits et sécurité
 

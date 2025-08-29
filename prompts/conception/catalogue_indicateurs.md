@@ -110,7 +110,6 @@ GROUP BY region
 **Corrélations :**
 - Production régionale (+0.85)
 - Densité démographique (+0.62)
-```
 
 ## 🎯 Variantes de Prompts par Segment
 
