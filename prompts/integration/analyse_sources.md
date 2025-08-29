@@ -9,8 +9,8 @@ Analyser rapidement des fichiers de données réelles et concevoir le modèle di
 ## 👤 Votre Rôle
 Data Engineer senior spécialisé dans l'intégration de données énergétiques
 
-## 📊 Ressources Fournies
-Vos 3 fichiers de données photovoltaïques français
+## 📊 Ressource Fournie
+Un [fichier CVS](https://github.com/abdelkrim-brahmi/atelier-llm-data-observatoire-pv/blob/main/data/raw/prod-region-annuelle-filiere.csv) de données de production électrique en France (dont photovoltaïques)
 
 ## 🎯 Livrable Attendu
 Modèle dimensionnel + mapping source-cible complet
@@ -20,7 +20,7 @@ Modèle dimensionnel + mapping source-cible complet
 ```
 Agis comme un Data Engineer senior spécialisé dans l'intégration de données énergétiques.
 
-CONTEXTE : J'ai ces 3 sources de données photovoltaïques françaises [UPLOAD VOS 3 FICHIERS]. Je dois créer un data warehouse Snowflake optimisé pour alimenter notre observatoire stratégique.
+CONTEXTE : J'ai une source de données de production électrique, dont photovoltaïques, françaises [UPLOAD VOTRE FICHIER CSV]. Je dois créer un data warehouse Snowflake optimisé pour alimenter notre observatoire stratégique.
 
 MISSION INTÉGRÉE : En analysant ces sources, conçois en une seule démarche :
 
@@ -61,11 +61,10 @@ Sois précis sur les noms de colonnes et types de données Snowflake.
 
 ### Préparation des Fichiers
 ```
-Avant d'upload, vérifiez que vos 3 fichiers :
-- Sont au format CSV avec encodage UTF-8
-- Ont des headers explicites en première ligne
-- Font moins de 25 MB chacun (limite ChatGPT)
-- Représentent bien les 3 typologies : installations, production, capacités
+Avant d'upload, vérifiez que votre fichier :
+- Est au format CSV avec encodage UTF-8
+- A des headers explicites en première ligne
+- Fait moins de 100 MB (limite upload Copilot)
 ```
 
 ### Maximiser l'Efficacité du Prompt
@@ -110,132 +109,9 @@ Ajoute une section évolutivité :
 
 ## 📋 Structure de Réponse Attendue
 
-```markdown
-# ANALYSE INTÉGRÉE - SOURCES PHOTOVOLTAÏQUES
+Afin de nous aligner sur les étapes suivantes :
+- **Exemple d'analyse de source** :  [datawarehouse_conception_pv](../../sample%20results/datawarehouse_conception_pv.md)
 
-## 📊 DIAGNOSTIC DES SOURCES
-
-### Fichier 1 : registre_installations_pv_2025.csv
-- **Volume :** 47,832 lignes, 12 colonnes
-- **Qualité :** 96% complétude, 3 doublons détectés
-- **Structure :**
-  ```
-  code_insee          VARCHAR(5)    - Code commune INSEE
-  puiss_max_rac      NUMBER(8,2)   - Puissance raccordée MW
-  date_rac           DATE          - Date de raccordement
-  [...]
-  ```
-
-### Fichier 2 : production_regionale_2012-2024.csv
-[Analyse similaire]
-
-### Fichier 3 : parc_eolien_solaire_regional.csv
-[Analyse similaire]
-
-## 🏗️ MODÈLE DIMENSIONNEL PROPOSÉ
-
-```sql
--- TABLE DE FAITS PRINCIPALE
-CREATE TABLE FAIT_PRODUCTION_PV (
-    date_key          NUMBER(8,0),
-    region_key        NUMBER(4,0),
-    installation_key  NUMBER(10,0),
-    production_mwh    NUMBER(10,2),
-    puissance_mw      NUMBER(8,2),
-    facteur_charge    NUMBER(5,4)
-);
-
--- DIMENSIONS
-CREATE TABLE DIM_TEMPS (
-    date_key      NUMBER(8,0) PRIMARY KEY,
-    date_complete DATE,
-    annee         NUMBER(4,0),
-    mois          NUMBER(2,0),
-    trimestre     NUMBER(1,0)
-);
-
-CREATE TABLE DIM_GEOGRAPHIE (
-    region_key    NUMBER(4,0) PRIMARY KEY,
-    code_region   VARCHAR(2),
-    nom_region    VARCHAR(50),
-    code_dept     VARCHAR(3),
-    nom_dept      VARCHAR(50)
-);
-```
-
-## 🔄 MAPPING & TRANSFORMATIONS
-
-### Source 1 → DIM_GEOGRAPHIE
-```sql
-INSERT INTO DIM_GEOGRAPHIE 
-SELECT 
-    ROW_NUMBER() OVER (ORDER BY nom_region) as region_key,
-    SUBSTR(code_insee, 1, 2) as code_region,
-    nom_region,
-    SUBSTR(code_insee, 1, 3) as code_dept,
-    nom_commune
-FROM registre_installations_pv_2025
-WHERE [conditions de nettoyage]
-```
-
-## 📈 CALCULS KPIs PRIORITAIRES
-
-### KPI 1 : Puissance Installée Cumulée
-```sql
-CREATE VIEW VW_PUISSANCE_CUMULEE AS
-SELECT 
-    dg.nom_region,
-    dt.annee,
-    SUM(fp.puissance_mw) as total_puissance_mw
-FROM FAIT_PRODUCTION_PV fp
-JOIN DIM_GEOGRAPHIE dg ON fp.region_key = dg.region_key
-JOIN DIM_TEMPS dt ON fp.date_key = dt.date_key
-GROUP BY dg.nom_region, dt.annee
-```
-```
-
-## ⚡ Optimisation du Timing (20 minutes)
-
-### Répartition Recommandée
-1. **2 minutes** - Upload des 3 fichiers et lancement du prompt
-2. **12 minutes** - Laisser ChatGPT analyser et générer le modèle complet
-3. **4 minutes** - Lire et valider la cohérence du modèle proposé
-4. **2 minutes** - Ajustements mineurs avec prompt de raffinement si nécessaire
-
-### Signaux d'une Bonne Analyse
-- ✅ **Modèle en étoile classique** avec 1 fait central + 4-5 dimensions
-- ✅ **Noms explicites** respectant conventions Snowflake (majuscules, underscores)
-- ✅ **Types adaptés** aux données énergétiques (NUMBER pour MW, DATE pour temporel)
-- ✅ **Mapping détaillé** avec exemples de code SQL
-- ✅ **Règles métier** spécifiques au photovoltaïque
-
-## 🛠️ Techniques Avancées
-
-### Gestion des Données Temporelles
-```sql
--- Gestion des séries temporelles avec gaps
-CREATE TABLE DIM_TEMPS_COMPLET AS
-SELECT 
-    TO_NUMBER(TO_CHAR(date_seq, 'YYYYMMDD')) as date_key,
-    date_seq as date_complete,
-    EXTRACT(YEAR FROM date_seq) as annee,
-    EXTRACT(MONTH FROM date_seq) as mois
-FROM TABLE(GENERATOR(ROWCOUNT => 3650)) -- 10 ans de données
-QUALIFY ROW_NUMBER() OVER (ORDER BY SEQ4()) = 1
-```
-
-### Dimensions à Évolution Lente (SCD)
-```sql
--- Gestion SCD Type 2 pour évolutions réglementaires
-CREATE TABLE DIM_INSTALLATION (
-    installation_key  NUMBER IDENTITY PRIMARY KEY,
-    code_installation VARCHAR(50),
-    regime_tarifaire  VARCHAR(50),
-    date_debut        DATE,
-    date_fin          DATE,
-    est_actuel        BOOLEAN
-);
-```
 
 ## 🔍 Points de Vigilance
 
