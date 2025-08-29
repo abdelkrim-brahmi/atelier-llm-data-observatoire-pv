@@ -2,14 +2,16 @@
 ## Cas d'usage : Observatoire Photovoltaïque France 🌞
 
 ### 🎯 Objectif
-Apprendre à utiliser efficacement [Copilot intégré à Microsoft 365](https://copilot.cloud.microsoft) pour accélérer les projets Data Engineering, de la conception à la livraison client.
+Apprendre à utiliser efficacement [Copilot](https://copilot.cloud.microsoft) pour accélérer les projets Data Engineering, de la conception à la livraison client.
 
 ### ⏱️ Format
 - **Durée :** 4 heures
 - **Format :** Atelier hands-on en équipes de 3-4 personnes  
 - **Niveau :** Consultant Data avec bases SQL/Snowflake
-- **Prérequis :** Accès Copilot Teamwork ou autre LLM personnel + environnement Snowflake Teamwork
-
+- **Prérequis :** 
+	- [ ] Accès [Copilot](https://copilot.cloud.microsoft)
+	- [ ] Accès Environnement [Snowflake Teamwork](https://a3857344721571-teamworkcorp_partner.snowflakecomputing.com/console/login)
+	- [ ] Formation [Appliquez des pratiques responsables avec Copilot](https://learning.teamwork.net/course/play/67f622590356a078ee41ea09)
 ---
 
 ## 🚀 Déroulement de l'Atelier
@@ -101,9 +103,6 @@ prompts/
 - **Fichier principal :** [`data/raw/prod-region-annuelle-filiere.csv`](./data/raw/prod-region-annuelle-filiere.csv)
 - **Source :** Open Data Réseaux Énergies (ODRÉ)
 - **Contenu :** Production électrique annuelle par région et filière (2012-2024)
-
-### 📋 Templates et Évaluation
-- **Évaluation :** [`evaluation/`](./evaluation/) - Grilles d'auto-évaluation et débrief
 
 ---
 
