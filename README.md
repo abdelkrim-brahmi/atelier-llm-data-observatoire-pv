@@ -6,10 +6,10 @@ Apprendre à utiliser efficacement [Copilot](https://copilot.cloud.microsoft) po
 
 ### ⏱️ Format
 - **Durée :** 4 heures
-- **Format :** Atelier hands-on en équipes de 3-4 personnes  
+- **Format :** Atelier hands-on en binome  
 - **Niveau :** Consultant Data avec bases SQL/Snowflake
 - **Prérequis :** 
-	- [ ] Accès [Copilot](https://copilot.cloud.microsoft)
+	- [ ] Accès [Microsoft 365 Copilot Chat](https://copilot.cloud.microsoft)
 	- [ ] Accès Environnement [Snowflake Teamwork](https://a3857344721571-teamworkcorp_partner.snowflakecomputing.com/console/login)
 	- [ ] Formation [Appliquez des pratiques responsables avec Copilot](https://learning.teamwork.net/course/play/67f622590356a078ee41ea09)
 ---

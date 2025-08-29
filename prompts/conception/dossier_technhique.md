@@ -11,6 +11,7 @@ Data Architect senior avec expertise projets énergétiques
 
 ## 📄 Livrable Attendu
 Document de conception de 3-4 pages structuré et prêt pour présentation client
+Production du document sur la base du [Template Word](https://teamworkfr.sharepoint.com/:w:/r/TeamWork/TWGroup/Marketing/Templates/Word/TW_Template_Word_light_FR.dotx?d=w264b56caaa234cc78f43cfc3cc1c47ca&csf=1&web=1&e=LkYMtX) disponible sur Sharepoint.
 
 ## 🤖 Prompt à Copier-Coller
 
@@ -109,16 +110,6 @@ Enrichis la section architecture technique avec :
 - Stratégie multi-zone et disaster recovery
 - Intégration avec les APIs des opérateurs énergétiques français
 - Coûts d'infrastructure prévisionnels sur 3 ans
-```
-
-#### Gouvernance et Sécurité
-```
-Ajoute une section gouvernance des données incluant :
-- Conformité RGPD et confidentialité des données énergétiques
-- Gestion des droits d'accès par profil utilisateur
-- Traçabilité et audit des transformations de données
-- Stratégie de sauvegarde et archivage long terme
-- Procédures de qualité et validation des données
 ```
 
 ## 📋 Template de Structure Attendue
