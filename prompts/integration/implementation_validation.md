@@ -15,7 +15,7 @@ Modèle de données opérationnel avec KPIs validés sur vraies données
 ## 📋 Checklist d'Implémentation
 
 ### 1. **Connexion Snowflake**
-- [ ] Connexion à votre environnement groupe
+- [ ] Connexion à votre environnement [Snowflake Teamwork](https://a3857344721571-teamworkcorp_partner.snowflakecomputing.com/console/login)
 - [ ] Création du schéma de travail
 - [ ] Vérification des droits (CREATE, INSERT, SELECT)
 
@@ -24,6 +24,7 @@ Modèle de données opérationnel avec KPIs validés sur vraies données
 - [ ] Exécution DDL dimensions → OK/KO  
 - [ ] Exécution DDL faits → OK/KO
 - [ ] Exécution vues métier → OK/KO
+    **Exemples de DDL**(si besoin) :  [datawarehouse_conception_pv](../../sample%20results/analyse_sources_resultat.md)
 
 ### 3. **Chargement des Données**
 - [ ] Upload des fichiers sources dans Snowflake
@@ -76,7 +77,7 @@ SELECT CURRENT_USER(), CURRENT_ROLE(), CURRENT_DATABASE(), CURRENT_SCHEMA();
 ### Phase 2 : Déploiement Infrastructure (15 minutes)
 ```sql
 -- Étape 1: Tables Staging (5 min)
--- Exécuter le DDL généré par ChatGPT en 2.2
+-- Exécuter le DDL généré par Copilot en 2.2
 -- Vérifier : SHOW TABLES LIKE 'STG_%';
 
 -- Étape 2: Tables Dimensions (5 min)  

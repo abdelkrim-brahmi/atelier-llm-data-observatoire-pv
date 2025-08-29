@@ -48,7 +48,7 @@ MISSION : Code SQL complet pour implémenter l'intégralité du flux de données
    - Gestion des rejets et reprises sur incident
    - Alertes sur anomalies de données
 
-Génère tout le code d'un coup, bien commenté et prêt à déployer.
+Génère tout le code d'un coup, bien commenté et prêt à déployer sur la base du chargement du fichier CSV analysé précédemment.
 ```
 
 ## ✅ Critères de Validation
@@ -60,7 +60,7 @@ Génère tout le code d'un coup, bien commenté et prêt à déployer.
 
 ## 💡 Astuce Technique
 
-Si le code généré est trop long, demandez à ChatGPT de le découper par couches successives, mais gardez la logique d'ensemble cohérente.
+Si le code généré est trop long, demandez à Copilot de le découper par couches successives, mais gardez la logique d'ensemble cohérente.
 
 ## 🔧 Prompts de Découpage si Nécessaire
 
@@ -108,7 +108,7 @@ Adapte le code pour un environnement de production :
 
 ### Répartition Recommandée
 1. **3 minutes** - Lancer le prompt principal
-2. **20 minutes** - Laisser ChatGPT générer l'ensemble du pipeline
+2. **20 minutes** - Laisser Copilot générer l'ensemble du pipeline
 3. **5 minutes** - Lire et identifier les sections prioritaires
 4. **2 minutes** - Demander précisions sur points critiques si nécessaire
 
@@ -124,6 +124,12 @@ Adapte le code pour un environnement de production :
 **P2 (Nice-to-have) :**
 - Optimisations avancées
 - Monitoring complet
+
+## 📋 Résultat Attendu
+
+Afin de nous aligner sur les étapes suivantes :
+- **Exemple de pipleline complet** :  [pipeline_snowflake_complet](../../sample%20results/pipeline_snowflake_complet.sql)
+
 
 ## 📋 Structure de Code Attendue
 
