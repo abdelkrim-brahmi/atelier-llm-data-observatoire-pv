@@ -2,13 +2,13 @@
 ## Cas d'usage : Observatoire Photovoltaïque France 🌞
 
 ### 🎯 Objectif
-Apprendre à utiliser efficacement les LLM (ChatGPT, Claude, etc.) pour accélérer les projets Data Engineering, de la conception à la livraison client.
+Apprendre à utiliser efficacement les LLM (Copilot, ChatGPT, Claude, etc.) pour accélérer les projets Data Engineering, de la conception à la livraison client.
 
 ### ⏱️ Format
 - **Durée :** 4 heures
 - **Format :** Atelier hands-on en équipes de 3-4 personnes  
 - **Niveau :** Consultant Data avec bases SQL/Snowflake
-- **Prérequis :** Accès ChatGPT Plus/Teams + environnement Snowflake
+- **Prérequis :** Accès Copilot Teamwork ou autre LLM personnel + environnement Snowflake Teamwork
 
 ---
 
@@ -103,7 +103,6 @@ prompts/
 - **Contenu :** Production électrique annuelle par région et filière (2012-2024)
 
 ### 📋 Templates et Évaluation
-- **Templates :** [`templates/`](./templates/) - Modèles de documents réutilisables
 - **Évaluation :** [`evaluation/`](./evaluation/) - Grilles d'auto-évaluation et débrief
 
 ---
@@ -115,12 +114,6 @@ prompts/
 2. **Donner du contexte métier** : Secteur photovoltaïque, enjeux business
 3. **Structurer les demandes** : Points numérotés, format de sortie spécifié
 4. **Itérer et raffiner** : Utiliser les prompts de raffinement fournis
-
-### 🎯 Focus par Phase
-- **Phase 1 :** Vision business et architecture conceptuelle
-- **Phase 2 :** Implémentation technique et validation sur données réelles
-- **Phase 3 :** Qualité professionnelle et préparation livraison client
-- **Phase 4 :** Capitalisation et plan de développement personnel
 
 ### ⚠️ Points de Vigilance
 - **Toujours valider** les outputs techniques générés par l'IA
@@ -159,13 +152,7 @@ prompts/
 ### 📞 Besoin d'Aide ?
 - **Pendant l'atelier :** Lever la main, les animateurs circulent
 - **Problèmes techniques :** Focus sur l'apprentissage, pas la perfection
-- **Questions métier :** S'appuyer sur l'expertise collective du groupe
-
-### 🔄 Amélioration Continue
-Ce repository évolue grâce à vos retours :
-- **Issues GitHub :** Pour signaler des problèmes ou suggestions
-- **Pull Requests :** Pour proposer des améliorations de prompts
-- **Discussions :** Pour partager vos retours d'expérience
+- **Questions métier :** S'appuyer sur les connaissances collectives du groupe dans le domaine métier
 
 ---
 
