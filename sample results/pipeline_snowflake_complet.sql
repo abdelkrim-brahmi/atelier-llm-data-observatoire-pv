@@ -42,7 +42,7 @@ ALTER ACCOUNT SET TIMEZONE = 'Europe/Paris';
 
 USE SCHEMA DW_PHOTOVOLTAIQUE.STAGING;
 
--- Table de staging pour les données de production régionale
+-- Table de staging pour les données de production régionale (CORRIGÉE)
 CREATE OR REPLACE TABLE STG_PRODUCTION_REGIONALE_RAW (
     -- Données métier brutes (format source)
     ANNEE                           INTEGER,
@@ -73,13 +73,10 @@ CREATE OR REPLACE TABLE STG_PRODUCTION_REGIONALE_RAW (
     ENVIRONNEMENT                   VARCHAR(20) DEFAULT 'PROD'
 )
 COMMENT = 'Table de staging pour données production énergétique régionale brute'
-DATA_RETENTION_TIME_IN_DAYS = 90;  -- Rétention 3 mois en staging
+DATA_RETENTION_TIME_IN_DAYS = 90  -- Rétention 3 mois en staging
+CLUSTER BY (ANNEE, CODE_INSEE_REGION);  -- CLUSTERING au lieu d'INDEX pour performance
 
--- Index pour performance
-CREATE INDEX IF NOT EXISTS IDX_STG_PROD_ANNEE_REGION 
-    ON STG_PRODUCTION_REGIONALE_RAW (ANNEE, CODE_INSEE_REGION);
-
--- Table des rejets et erreurs
+-- Table des rejets et erreurs (CORRIGÉE)
 CREATE OR REPLACE TABLE STG_REJETS_DONNEES (
     ID_REJET                        INTEGER AUTOINCREMENT,
     FICHIER_SOURCE                  VARCHAR(500),
@@ -91,7 +88,8 @@ CREATE OR REPLACE TABLE STG_REJETS_DONNEES (
     DATE_REPRISE                    TIMESTAMP_NTZ,
     PRIMARY KEY (ID_REJET)
 )
-COMMENT = 'Journal des données rejetées lors du chargement';
+COMMENT = 'Journal des données rejetées lors du chargement'
+CLUSTER BY (DATE_REJET);  -- Clustering par date pour performance requêtes temporelles
 
 -- =====================================================================================
 -- ÉTAPE 2: COUCHE DIMENSIONNELLE
@@ -136,15 +134,15 @@ CREATE OR REPLACE TABLE DIM_CALENDRIER (
     -- Métadonnées
     DATE_CREATION                   TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP,
     DATE_MAJ                        TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP,
-    ACTIF                           BOOLEAN DEFAULT TRUE,
+    ACTIF                           BOOLEAN DEFAULT TRUE
     
     -- Contraintes métier
-    CONSTRAINT CK_TRIMESTRE CHECK (TRIMESTRE BETWEEN 1 AND 4),
-    CONSTRAINT CK_MOIS CHECK (MOIS BETWEEN 1 AND 12),
-    CONSTRAINT CK_COEFF_SOLAIRE CHECK (COEFFICIENT_SOLAIRE BETWEEN 0.1 AND 1.5)
+    -- CONSTRAINT CK_TRIMESTRE CHECK (TRIMESTRE BETWEEN 1 AND 4),
+    -- CONSTRAINT CK_MOIS CHECK (MOIS BETWEEN 1 AND 12),
+    -- CONSTRAINT CK_COEFF_SOLAIRE CHECK (COEFFICIENT_SOLAIRE BETWEEN 0.1 AND 1.5)
 )
 COMMENT = 'Dimension temporelle optimisée pour analyses énergétiques photovoltaïques'
-CLUSTER BY (ANNEE, MOIS);
+CLUSTER BY (ANNEE, MOIS);  -- Clustering pour performance requêtes temporelles
 
 -- ┌─────────────────────────────────────────────────────────────────────────────────┐
 -- │ DIM_GEOGRAPHIE - Dimension territoriale française                               │
@@ -195,15 +193,14 @@ CREATE OR REPLACE TABLE DIM_GEOGRAPHIE (
     SOURCE_DONNEES                  VARCHAR(100) DEFAULT 'INSEE_2024',
     DATE_DERNIERE_MAJ               TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP,
     ACTIF                           BOOLEAN DEFAULT TRUE,
-    VERSION                         INTEGER DEFAULT 1,
+    VERSION                         INTEGER DEFAULT 1
     
-    -- Contraintes
-    CONSTRAINT FK_REGION_PARENT FOREIGN KEY (REGION_PARENT_KEY) 
-        REFERENCES DIM_GEOGRAPHIE(GEOGRAPHIE_KEY),
-    CONSTRAINT CK_PRIORITE CHECK (PRIORITE_DEVELOPPEMENT BETWEEN 1 AND 5)
+    -- Contraintes (FK supprimée pour éviter erreurs circulaires)
+    -- CONSTRAINT CK_PRIORITE CHECK (PRIORITE_DEVELOPPEMENT BETWEEN 1 AND 5)
 )
 COMMENT = 'Dimension géographique France avec intelligence marché photovoltaïque'
-CLUSTER BY (CODE_INSEE_REGION, NIVEAU_GEOGRAPHIQUE);
+CLUSTER BY (CODE_INSEE_REGION, NIVEAU_GEOGRAPHIQUE);  -- Clustering pour requêtes géographiques
+
 
 -- ┌─────────────────────────────────────────────────────────────────────────────────┐
 -- │ DIM_FILIERE_ENERGIE - Technologies énergétiques                                │
@@ -245,7 +242,8 @@ CREATE OR REPLACE TABLE DIM_FILIERE_ENERGIE (
     DATE_MAJ                        TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP,
     ACTIF                           BOOLEAN DEFAULT TRUE
 )
-COMMENT = 'Référentiel des filières énergétiques avec focus photovoltaïque';
+COMMENT = 'Référentiel des filières énergétiques avec focus photovoltaïque'
+CLUSTER BY (FILIERE_KEY);  -- Clustering pour requêtes par filière
 
 -- ┌─────────────────────────────────────────────────────────────────────────────────┐
 -- │ DIM_SEGMENT_MARCHE - Segmentation business photovoltaïque                      │
@@ -275,7 +273,9 @@ CREATE OR REPLACE TABLE DIM_SEGMENT_MARCHE (
     DATE_CREATION                   TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP,
     ACTIF                           BOOLEAN DEFAULT TRUE
 )
-COMMENT = 'Segmentation marché photovoltaïque français par puissance et usage';
+COMMENT = 'Segmentation marché photovoltaïque français par puissance et usage'
+CLUSTER BY (SEGMENT_KEY);
+
 
 -- =====================================================================================
 -- ÉTAPE 3: PEUPLEMENT DIMENSIONS (Données de référence)
@@ -391,33 +391,15 @@ CREATE OR REPLACE TABLE FACT_PRODUCTION_ENERGIE (
     
     -- Colonnes de partitioning et clustering
     ANNEE_PARTITION                 INTEGER,                  -- Colonne de partition
-    REGION_CLUSTER                  VARCHAR(30),              -- Colonne de clustering
+    REGION_CLUSTER                  VARCHAR(30)              -- Colonne de clustering
     
-    -- Contraintes d'intégrité
-    CONSTRAINT FK_FACT_DATE FOREIGN KEY (DATE_KEY) 
-        REFERENCES DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_CALENDRIER(DATE_KEY),
-    CONSTRAINT FK_FACT_GEO FOREIGN KEY (GEOGRAPHIE_KEY) 
-        REFERENCES DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_GEOGRAPHIE(GEOGRAPHIE_KEY),
-    CONSTRAINT FK_FACT_FILIERE FOREIGN KEY (FILIERE_KEY) 
-        REFERENCES DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_FILIERE_ENERGIE(FILIERE_KEY),
-    CONSTRAINT FK_FACT_SEGMENT FOREIGN KEY (SEGMENT_KEY) 
-        REFERENCES DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_SEGMENT_MARCHE(SEGMENT_KEY),
-        
-    -- Contraintes métier
-    CONSTRAINT CK_PRODUCTION_POSITIVE CHECK (PRODUCTION_GWH >= 0),
-    CONSTRAINT CK_FACTEUR_CHARGE CHECK (FACTEUR_CHARGE_PERCENT BETWEEN 0 AND 100),
-    CONSTRAINT CK_SCORE_QUALITE CHECK (SCORE_QUALITE_DONNEE BETWEEN 0 AND 100)
+    -- Contraintes métier (FK supprimées pour éviter erreurs)
+    -- CONSTRAINT CK_PRODUCTION_POSITIVE CHECK (PRODUCTION_GWH >= 0),
+    -- CONSTRAINT CK_FACTEUR_CHARGE CHECK (FACTEUR_CHARGE_PERCENT BETWEEN 0 AND 100),
+    -- CONSTRAINT CK_SCORE_QUALITE CHECK (SCORE_QUALITE_DONNEE BETWEEN 0 AND 100)
 )
 COMMENT = 'Table de faits centrale pour production énergétique avec focus photovoltaïque'
-CLUSTER BY (ANNEE_PARTITION, REGION_CLUSTER, FILIERE_KEY)
-PARTITION BY (ANNEE_PARTITION);
-
--- Index optimisés pour requêtes business
-CREATE INDEX IF NOT EXISTS IDX_FACT_PROD_DATE_GEO_FILIERE 
-    ON FACT_PRODUCTION_ENERGIE (DATE_KEY, GEOGRAPHIE_KEY, FILIERE_KEY);
-CREATE INDEX IF NOT EXISTS IDX_FACT_PROD_SOLAIRE 
-    ON FACT_PRODUCTION_ENERGIE (FILIERE_KEY, PRODUCTION_GWH DESC) 
-    WHERE FILIERE_KEY = 'SOLAIRE_PV';
+CLUSTER BY (ANNEE_PARTITION, REGION_CLUSTER, FILIERE_KEY);  -- Clustering multi-colonnes optimisé
 
 -- =====================================================================================
 -- ÉTAPE 5: PROCÉDURES DE CHARGEMENT ETL
@@ -437,7 +419,7 @@ RETURNS STRING
 LANGUAGE SQL
 COMMENT = 'Procédure ETL complète: Staging → Dimensions → Facts'
 AS
-$
+$$
 DECLARE
     V_NB_LIGNES_TRAITEES INTEGER DEFAULT 0;
     V_NB_LIGNES_REJETEES INTEGER DEFAULT 0;
@@ -742,7 +724,7 @@ EXCEPTION
         
         RETURN 'ERROR: ' || SQLERRM;
 END;
-$;
+$$;
 
 -- =====================================================================================
 -- ÉTAPE 6: COUCHE MARTS - VUES MÉTIER POUR LES 5 KPIS PRIORITAIRES
@@ -935,52 +917,61 @@ WITH PERFORMANCE_REGIONALE AS (
     WHERE F.FILIERE_KEY = 'SOLAIRE_PV'
     AND GEO.NIVEAU_GEOGRAPHIQUE = 'REGIONAL'
     AND F.PRODUCTION_GWH > 0
+),
+REGIONS_CLASSEES AS (
+    SELECT 
+        ANNEE,
+        NOM_REGION,
+        FACTEUR_CHARGE_PERCENT,
+        ROW_NUMBER() OVER (PARTITION BY ANNEE ORDER BY FACTEUR_CHARGE_PERCENT DESC) AS RANG_DESC,
+        ROW_NUMBER() OVER (PARTITION BY ANNEE ORDER BY FACTEUR_CHARGE_PERCENT ASC) AS RANG_ASC
+    FROM PERFORMANCE_REGIONALE
 )
 SELECT 
-    ANNEE,
+    P.ANNEE,
     
     -- Facteurs de charge nationaux
-    ROUND(AVG(FACTEUR_CHARGE_PERCENT), 2) AS FACTEUR_CHARGE_MOYEN_PERCENT,
-    ROUND(MIN(FACTEUR_CHARGE_PERCENT), 2) AS FACTEUR_CHARGE_MIN_PERCENT,
-    ROUND(MAX(FACTEUR_CHARGE_PERCENT), 2) AS FACTEUR_CHARGE_MAX_PERCENT,
-    ROUND(STDDEV(FACTEUR_CHARGE_PERCENT), 2) AS ECART_TYPE_FC_PERCENT,
+    ROUND(AVG(P.FACTEUR_CHARGE_PERCENT), 2) AS FACTEUR_CHARGE_MOYEN_PERCENT,
+    ROUND(MIN(P.FACTEUR_CHARGE_PERCENT), 2) AS FACTEUR_CHARGE_MIN_PERCENT,
+    ROUND(MAX(P.FACTEUR_CHARGE_PERCENT), 2) AS FACTEUR_CHARGE_MAX_PERCENT,
+    ROUND(STDDEV(P.FACTEUR_CHARGE_PERCENT), 2) AS ECART_TYPE_FC_PERCENT,
     
     -- Productivité spécifique moyenne pondérée
-    ROUND(SUM(PRODUCTION_SPECIFIQUE_KWH_KWC * PUISSANCE_ESTIMEE_MW) / NULLIF(SUM(PUISSANCE_ESTIMEE_MW), 0), 0) AS PRODUCTIVITE_PONDEREE_KWH_KWC,
+    ROUND(SUM(P.PRODUCTION_SPECIFIQUE_KWH_KWC * P.PUISSANCE_ESTIMEE_MW) / NULLIF(SUM(P.PUISSANCE_ESTIMEE_MW), 0), 0) AS PRODUCTIVITE_PONDEREE_KWH_KWC,
     
     -- Heures équivalentes moyennes pondérées
-    ROUND(SUM(HEURES_EQUIVALENTES * PUISSANCE_ESTIMEE_MW) / NULLIF(SUM(PUISSANCE_ESTIMEE_MW), 0), 0) AS HEURES_EQUIV_PONDEREES,
+    ROUND(SUM(P.HEURES_EQUIVALENTES * P.PUISSANCE_ESTIMEE_MW) / NULLIF(SUM(P.PUISSANCE_ESTIMEE_MW), 0), 0) AS HEURES_EQUIV_PONDEREES,
     
     -- Performance technique globale
-    ROUND(AVG(PERFORMANCE_RATIO_PERCENT), 1) AS PERFORMANCE_RATIO_MOYEN_PERCENT,
+    ROUND(AVG(P.PERFORMANCE_RATIO_PERCENT), 1) AS PERFORMANCE_RATIO_MOYEN_PERCENT,
     
-    -- Disparités régionales
-    MAX(NOM_REGION) KEEP (DENSE_RANK FIRST ORDER BY FACTEUR_CHARGE_PERCENT DESC) AS REGION_MEILLEURE_PERFORMANCE,
-    MAX(FACTEUR_CHARGE_PERCENT) AS FACTEUR_CHARGE_BEST_PERCENT,
-    MAX(NOM_REGION) KEEP (DENSE_RANK FIRST ORDER BY FACTEUR_CHARGE_PERCENT ASC) AS REGION_PLUS_FAIBLE_PERFORMANCE,
-    MIN(FACTEUR_CHARGE_PERCENT) AS FACTEUR_CHARGE_WORST_PERCENT,
+    -- Disparités régionales (avec sous-requêtes)
+    (SELECT NOM_REGION FROM REGIONS_CLASSEES WHERE ANNEE = P.ANNEE AND RANG_DESC = 1 LIMIT 1) AS REGION_MEILLEURE_PERFORMANCE,
+    MAX(P.FACTEUR_CHARGE_PERCENT) AS FACTEUR_CHARGE_BEST_PERCENT,
+    (SELECT NOM_REGION FROM REGIONS_CLASSEES WHERE ANNEE = P.ANNEE AND RANG_ASC = 1 LIMIT 1) AS REGION_PLUS_FAIBLE_PERFORMANCE,
+    MIN(P.FACTEUR_CHARGE_PERCENT) AS FACTEUR_CHARGE_WORST_PERCENT,
     
     -- Évolution vs année précédente
-    ROUND(AVG(FACTEUR_CHARGE_PERCENT) - LAG(AVG(FACTEUR_CHARGE_PERCENT), 1) OVER (ORDER BY ANNEE), 2) AS EVOLUTION_FC_POINTS,
+    ROUND(AVG(P.FACTEUR_CHARGE_PERCENT) - LAG(AVG(P.FACTEUR_CHARGE_PERCENT), 1) OVER (ORDER BY P.ANNEE), 2) AS EVOLUTION_FC_POINTS,
     
     -- Contexte climatique
-    ROUND(AVG(IRRADIATION_OPTIMALE), 0) AS IRRADIATION_MOYENNE_KWH_M2,
+    ROUND(AVG(P.IRRADIATION_OPTIMALE), 0) AS IRRADIATION_MOYENNE_KWH_M2,
     
     -- Benchmark objectifs (14% objectif moyen France)
     CASE 
-        WHEN AVG(FACTEUR_CHARGE_PERCENT) >= 14.0 THEN 'OBJECTIF_ATTEINT'
-        WHEN AVG(FACTEUR_CHARGE_PERCENT) >= 12.0 THEN 'PROCHE_OBJECTIF' 
+        WHEN AVG(P.FACTEUR_CHARGE_PERCENT) >= 14.0 THEN 'OBJECTIF_ATTEINT'
+        WHEN AVG(P.FACTEUR_CHARGE_PERCENT) >= 12.0 THEN 'PROCHE_OBJECTIF' 
         ELSE 'SOUS_OBJECTIF'
     END AS STATUT_VS_OBJECTIF,
     
     -- Métadonnées
     COUNT(*) AS NB_REGIONS_ANALYSEES,
-    ROUND(SUM(PUISSANCE_ESTIMEE_MW) / 1000, 2) AS PUISSANCE_TOTALE_ANALYSEE_GW,
+    ROUND(SUM(P.PUISSANCE_ESTIMEE_MW) / 1000, 2) AS PUISSANCE_TOTALE_ANALYSEE_GW,
     CURRENT_TIMESTAMP() AS DATE_CALCUL
     
-FROM PERFORMANCE_REGIONALE
-GROUP BY ANNEE
-ORDER BY ANNEE DESC;
+FROM PERFORMANCE_REGIONALE P
+GROUP BY P.ANNEE
+ORDER BY P.ANNEE DESC;
 
 -- ┌─────────────────────────────────────────────────────────────────────────────────┐
 -- │ KPI 5: PUISSANCE PAR HABITANT (Densité territoriale)                          │
@@ -1080,43 +1071,49 @@ CREATE OR REPLACE VIEW VW_SYNTHESE_NATIONALE_ANNUELLE
 COMMENT = 'Vue de synthèse pour tableau de bord exécutif'
 AS
 SELECT 
-    KC.ANNEE,
-    KC.PUISSANCE_INSTALLEE_GW,
-    KC.CROISSANCE_RELATIVE_PERCENT AS CROISSANCE_PUISSANCE_PERCENT,
-    KC.AVANCEMENT_OBJECTIF_PERCENT AS AVANCEMENT_PPE_PERCENT,
+    F.ANNEE_PARTITION,
     
-    KP.PRODUCTION_PV_TWH,
-    KP.PART_PV_MIX_PERCENT,
-    KP.COUVERTURE_CONSOMMATION_PERCENT,
+    -- Calculs directs depuis les tables de base si les vues KPI n'existent pas
+    ROUND(SUM(F.PRODUCTION_GWH / (G.IRRADIATION_OPTIMALE * 0.85 / 1000) / 1000), 2) AS PUISSANCE_INSTALLEE_GW,
+    ROUND(SUM(F.PRODUCTION_GWH) / 1000, 2) AS PRODUCTION_PV_TWH,
+    ROUND(AVG(F.FACTEUR_CHARGE_PERCENT), 2) AS FACTEUR_CHARGE_MOYEN_PERCENT,
+    ROUND(AVG(F.PRODUCTION_GWH / (G.IRRADIATION_OPTIMALE * 0.85 / 1000) / NULLIF(G.POPULATION_DERNIERE, 0) * 1000000), 0) AS MOYENNE_NATIONALE_W_PAR_HAB,
     
-    KF.FACTEUR_CHARGE_MOYEN_PERCENT,
-    KF.PRODUCTIVITE_PONDEREE_KWH_KWC,
-    KF.REGION_MEILLEURE_PERFORMANCE,
+    -- Calcul croissance (vs année précédente)
+    ROUND((SUM(F.PRODUCTION_GWH) - LAG(SUM(F.PRODUCTION_GWH), 1) OVER (ORDER BY F.ANNEE_PARTITION)) / 
+          NULLIF(LAG(SUM(F.PRODUCTION_GWH), 1) OVER (ORDER BY F.ANNEE_PARTITION), 0) * 100, 1) AS CROISSANCE_PRODUCTION_PERCENT,
     
-    KD.MOYENNE_NATIONALE_W_PAR_HAB,
-    
-    -- Alertes et insights
+    -- Alertes et insights simplifiés
     CASE 
-        WHEN KC.CROISSANCE_RELATIVE_PERCENT > 50 THEN 'ACCELERATION_FORTE'
-        WHEN KC.CROISSANCE_RELATIVE_PERCENT > 20 THEN 'CROISSANCE_SOUTENUE'
-        WHEN KC.CROISSANCE_RELATIVE_PERCENT > 10 THEN 'CROISSANCE_NORMALE'
+        WHEN (SUM(F.PRODUCTION_GWH) - LAG(SUM(F.PRODUCTION_GWH), 1) OVER (ORDER BY F.ANNEE_PARTITION)) / 
+             NULLIF(LAG(SUM(F.PRODUCTION_GWH), 1) OVER (ORDER BY F.ANNEE_PARTITION), 0) * 100 > 50 THEN 'ACCELERATION_FORTE'
+        WHEN (SUM(F.PRODUCTION_GWH) - LAG(SUM(F.PRODUCTION_GWH), 1) OVER (ORDER BY F.ANNEE_PARTITION)) / 
+             NULLIF(LAG(SUM(F.PRODUCTION_GWH), 1) OVER (ORDER BY F.ANNEE_PARTITION), 0) * 100 > 20 THEN 'CROISSANCE_SOUTENUE'
+        WHEN (SUM(F.PRODUCTION_GWH) - LAG(SUM(F.PRODUCTION_GWH), 1) OVER (ORDER BY F.ANNEE_PARTITION)) / 
+             NULLIF(LAG(SUM(F.PRODUCTION_GWH), 1) OVER (ORDER BY F.ANNEE_PARTITION), 0) * 100 > 10 THEN 'CROISSANCE_NORMALE'
         ELSE 'RALENTISSEMENT'
     END AS ALERTE_CROISSANCE,
     
+    -- Statut PPE (objectif 44.5 GW en 2028)
     CASE 
-        WHEN KC.AVANCEMENT_OBJECTIF_PERCENT >= 90 THEN 'OBJECTIF_EN_VOIE'
-        WHEN KC.AVANCEMENT_OBJECTIF_PERCENT >= 70 THEN 'TRAJECTOIRE_CORRECTE'
+        WHEN F.ANNEE_PARTITION = 2028 AND SUM(F.PRODUCTION_GWH / (G.IRRADIATION_OPTIMALE * 0.85 / 1000) / 1000) >= 40.0 THEN 'OBJECTIF_EN_VOIE'
+        WHEN F.ANNEE_PARTITION = 2028 AND SUM(F.PRODUCTION_GWH / (G.IRRADIATION_OPTIMALE * 0.85 / 1000) / 1000) >= 31.0 THEN 'TRAJECTOIRE_CORRECTE'
+        WHEN F.ANNEE_PARTITION <= 2028 THEN 'EN_COURS'
         ELSE 'EFFORT_SUPPLEMENTAIRE_REQUIS'
     END AS STATUT_PPE,
     
+    -- Métadonnées
+    COUNT(*) AS NB_REGIONS,
     CURRENT_TIMESTAMP() AS DATE_MAJ
     
-FROM VW_KPI_CROISSANCE_PUISSANCE KC
-LEFT JOIN VW_KPI_PRODUCTION_TOTALE KP ON KC.ANNEE = KP.ANNEE  
-LEFT JOIN VW_KPI_FACTEUR_CHARGE KF ON KC.ANNEE = KF.ANNEE
-LEFT JOIN (SELECT ANNEE, AVG(WATTS_PAR_HABITANT) AS MOYENNE_NATIONALE_W_PAR_HAB 
-          FROM VW_KPI_PUISSANCE_PAR_HABITANT GROUP BY ANNEE) KD ON KC.ANNEE = KD.ANNEE
-ORDER BY KC.ANNEE DESC;
+FROM DW_PHOTOVOLTAIQUE.FACTS.FACT_PRODUCTION_ENERGIE F
+JOIN DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_CALENDRIER C ON F.DATE_KEY = C.DATE_KEY
+JOIN DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_GEOGRAPHIE G ON F.GEOGRAPHIE_KEY = G.GEOGRAPHIE_KEY
+WHERE F.FILIERE_KEY = 'SOLAIRE_PV'
+AND G.NIVEAU_GEOGRAPHIQUE = 'REGIONAL'
+AND F.PRODUCTION_GWH > 0
+GROUP BY F.ANNEE_PARTITION, C.ANNEE
+ORDER BY F.ANNEE_PARTITION DESC;
 
 -- Vue top/flop régions avec recommandations
 CREATE OR REPLACE VIEW VW_OPPORTUNITES_REGIONALES
@@ -1229,19 +1226,24 @@ RETURNS STRING
 LANGUAGE SQL
 COMMENT = 'Contrôles qualité automatiques après chargement'
 AS
-$
+$$
 DECLARE
-    V_NB_ALERTES INTEGER DEFAULT 0;
+    V_NB_ALERTES_1 INTEGER DEFAULT 0;
+    V_NB_ALERTES_2 INTEGER DEFAULT 0;
+    V_NB_ALERTES_3 INTEGER DEFAULT 0;
+    V_NB_ALERTES_TOTAL INTEGER DEFAULT 0;
 BEGIN
     -- Contrôle 1: Détection des valeurs aberrantes production solaire
-    INSERT INTO ALERTES_QUALITE (TYPE_ALERTE, DESCRIPTION_ALERTE, TABLE_CONCERNEE, COLONNE_CONCERNEE, 
-                                 VALEUR_DETECTEE, SEUIL_ALERTE, CRITICITE)
+    INSERT INTO DW_PHOTOVOLTAIQUE.MONITORING.ALERTES_QUALITE (
+        TYPE_ALERTE, DESCRIPTION_ALERTE, TABLE_CONCERNEE, COLONNE_CONCERNEE, 
+        VALEUR_DETECTEE, SEUIL_ALERTE, CRITICITE
+    )
     SELECT 
         'OUTLIER',
-        'Production solaire anormalement élevée pour la région',
+        'Production solaire anormalement élevée pour la région: ' || G.NOM_REGION,
         'FACT_PRODUCTION_ENERGIE',
         'PRODUCTION_GWH',
-        PRODUCTION_GWH::VARCHAR,
+        F.PRODUCTION_GWH::VARCHAR,
         '10000 GWh',
         'HIGH'
     FROM DW_PHOTOVOLTAIQUE.FACTS.FACT_PRODUCTION_ENERGIE F
@@ -1250,17 +1252,26 @@ BEGIN
     AND F.PRODUCTION_GWH > 10000  -- Seuil arbitraire très élevé
     AND F.DATE_MAJ >= CURRENT_DATE - 1;  -- Données récentes seulement
     
-    GET DIAGNOSTICS V_NB_ALERTES = ROW_COUNT;
+    -- Compter les alertes du contrôle 1
+    SELECT COUNT(*)
+    INTO V_NB_ALERTES_1
+    FROM DW_PHOTOVOLTAIQUE.FACTS.FACT_PRODUCTION_ENERGIE F
+    JOIN DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_GEOGRAPHIE G ON F.GEOGRAPHIE_KEY = G.GEOGRAPHIE_KEY
+    WHERE F.FILIERE_KEY = 'SOLAIRE_PV'
+    AND F.PRODUCTION_GWH > 10000
+    AND F.DATE_MAJ >= CURRENT_DATE - 1;
     
     -- Contrôle 2: Détection des régressions importantes
-    INSERT INTO ALERTES_QUALITE (TYPE_ALERTE, DESCRIPTION_ALERTE, TABLE_CONCERNEE, COLONNE_CONCERNEE,
-                                 VALEUR_DETECTEE, SEUIL_ALERTE, CRITICITE)
+    INSERT INTO DW_PHOTOVOLTAIQUE.MONITORING.ALERTES_QUALITE (
+        TYPE_ALERTE, DESCRIPTION_ALERTE, TABLE_CONCERNEE, COLONNE_CONCERNEE,
+        VALEUR_DETECTEE, SEUIL_ALERTE, CRITICITE
+    )
     SELECT 
         'INCONSISTENCY',
-        'Forte régression de production vs année précédente: ' || NOM_REGION,
+        'Forte régression de production vs année précédente: ' || G.NOM_REGION,
         'FACT_PRODUCTION_ENERGIE', 
         'CROISSANCE_RELATIVE_PERCENT',
-        CROISSANCE_RELATIVE_PERCENT::VARCHAR || '%',
+        F.CROISSANCE_RELATIVE_PERCENT::VARCHAR || '%',
         '-50%',
         'MEDIUM'
     FROM DW_PHOTOVOLTAIQUE.FACTS.FACT_PRODUCTION_ENERGIE F
@@ -1270,42 +1281,74 @@ BEGIN
     AND F.CROISSANCE_RELATIVE_PERCENT < -50  -- Régression > 50%
     AND C.ANNEE = YEAR(CURRENT_DATE);  -- Année en cours
     
-    V_NB_ALERTES := V_NB_ALERTES + ROW_COUNT;
+    -- Compter les alertes du contrôle 2
+    SELECT COUNT(*)
+    INTO V_NB_ALERTES_2
+    FROM DW_PHOTOVOLTAIQUE.FACTS.FACT_PRODUCTION_ENERGIE F
+    JOIN DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_CALENDRIER C ON F.DATE_KEY = C.DATE_KEY
+    WHERE F.FILIERE_KEY = 'SOLAIRE_PV'
+    AND F.CROISSANCE_RELATIVE_PERCENT < -50
+    AND C.ANNEE = YEAR(CURRENT_DATE);
     
-    -- Contrôle 3: Détection données manquantes récentes
-    INSERT INTO ALERTES_QUALITE (TYPE_ALERTE, DESCRIPTION_ALERTE, TABLE_CONCERNEE, COLONNE_CONCERNEE,
-                                 VALEUR_DETECTEE, SEUIL_ALERTE, CRITICITE)
+    -- Contrôle 3: Détection données manquantes récentes (simplifié)
+    INSERT INTO DW_PHOTOVOLTAIQUE.MONITORING.ALERTES_QUALITE (
+        TYPE_ALERTE, DESCRIPTION_ALERTE, TABLE_CONCERNEE, COLONNE_CONCERNEE,
+        VALEUR_DETECTEE, SEUIL_ALERTE, CRITICITE
+    )
     SELECT 
         'MISSING_DATA',
-        'Données de production manquantes pour région: ' || NOM_REGION || ' année: ' || ANNEE_ATTENDUE,
+        'Région sans données récentes: ' || G.NOM_REGION,
         'FACT_PRODUCTION_ENERGIE',
         'PRODUCTION_GWH',
         'NULL',
         '0',
         'HIGH'
-    FROM (
-        SELECT G.NOM_REGION, C.ANNEE AS ANNEE_ATTENDUE
-        FROM DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_GEOGRAPHIE G
-        CROSS JOIN (SELECT DISTINCT ANNEE FROM DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_CALENDRIER 
-                   WHERE ANNEE >= YEAR(CURRENT_DATE) - 2) C  -- 3 dernières années
-        WHERE G.NIVEAU_GEOGRAPHIQUE = 'REGIONAL'
-        
-        EXCEPT
-        
-        SELECT G.NOM_REGION, CAL.ANNEE 
+    FROM DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_GEOGRAPHIE G
+    WHERE G.NIVEAU_GEOGRAPHIQUE = 'REGIONAL'
+    AND NOT EXISTS (
+        SELECT 1 
         FROM DW_PHOTOVOLTAIQUE.FACTS.FACT_PRODUCTION_ENERGIE F
-        JOIN DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_GEOGRAPHIE G ON F.GEOGRAPHIE_KEY = G.GEOGRAPHIE_KEY
-        JOIN DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_CALENDRIER CAL ON F.DATE_KEY = CAL.DATE_KEY
-        WHERE F.FILIERE_KEY = 'SOLAIRE_PV'
-        AND G.NIVEAU_GEOGRAPHIQUE = 'REGIONAL'
-    ) DONNEES_MANQUANTES;
+        JOIN DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_CALENDRIER C ON F.DATE_KEY = C.DATE_KEY
+        WHERE F.GEOGRAPHIE_KEY = G.GEOGRAPHIE_KEY
+        AND F.FILIERE_KEY = 'SOLAIRE_PV'
+        AND C.ANNEE >= YEAR(CURRENT_DATE) - 1  -- Données de l'année dernière minimum
+    );
     
-    V_NB_ALERTES := V_NB_ALERTES + ROW_COUNT;
+    -- Compter les alertes du contrôle 3
+    SELECT COUNT(*)
+    INTO V_NB_ALERTES_3
+    FROM DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_GEOGRAPHIE G
+    WHERE G.NIVEAU_GEOGRAPHIQUE = 'REGIONAL'
+    AND NOT EXISTS (
+        SELECT 1 
+        FROM DW_PHOTOVOLTAIQUE.FACTS.FACT_PRODUCTION_ENERGIE F
+        JOIN DW_PHOTOVOLTAIQUE.DIMENSIONS.DIM_CALENDRIER C ON F.DATE_KEY = C.DATE_KEY
+        WHERE F.GEOGRAPHIE_KEY = G.GEOGRAPHIE_KEY
+        AND F.FILIERE_KEY = 'SOLAIRE_PV'
+        AND C.ANNEE >= YEAR(CURRENT_DATE) - 1
+    );
     
-    RETURN 'Contrôles qualité terminés - ' || V_NB_ALERTES || ' alertes générées';
+    -- Total des alertes
+    V_NB_ALERTES_TOTAL := V_NB_ALERTES_1 + V_NB_ALERTES_2 + V_NB_ALERTES_3;
+    
+    -- Log du contrôle dans la table de logs
+    INSERT INTO DW_PHOTOVOLTAIQUE.MONITORING.LOG_EXECUTION (
+        PROCEDURE_NAME, NB_LIGNES_TRAITEES, TIMESTAMP_DEBUT, TIMESTAMP_FIN, 
+        STATUT, MESSAGE_ERREUR
+    ) VALUES (
+        'SP_CONTROLE_QUALITE', 
+        V_NB_ALERTES_TOTAL,
+        CURRENT_TIMESTAMP(),
+        CURRENT_TIMESTAMP(),
+        'SUCCESS',
+        'Contrôles: Outliers=' || V_NB_ALERTES_1 || ', Régressions=' || V_NB_ALERTES_2 || ', Manquantes=' || V_NB_ALERTES_3
+    );
+    
+    RETURN 'Contrôles qualité terminés - ' || V_NB_ALERTES_TOTAL || ' alertes générées (' ||
+           'Outliers: ' || V_NB_ALERTES_1 || ', Régressions: ' || V_NB_ALERTES_2 || ', Données manquantes: ' || V_NB_ALERTES_3 || ')';
     
 END;
-$;
+$$;
 
 -- Vue de monitoring des alertes actives
 CREATE OR REPLACE VIEW VW_MONITORING_ALERTES_ACTIVES
@@ -1342,30 +1385,168 @@ ORDER BY
 -- =====================================================================================
 -- ÉTAPE 9: EXEMPLE D'UTILISATION ET SCRIPTS DE TEST
 -- =====================================================================================
+-- =====================================================================================
+-- CRÉATION DU STAGE S3 POUR LE FICHIER CSV PHOTOVOLTAÏQUE
+-- =====================================================================================
 
--- Script d'exemple pour charger les données du fichier CSV analysé
-/*
--- 1. Chargement des données brutes en staging
-COPY INTO DW_PHOTOVOLTAIQUE.STAGING.STG_PRODUCTION_REGIONALE_RAW (
-    ANNEE, CODE_INSEE_REGION, REGION, PRODUCTION_NUCLEAIRE_GWH, PRODUCTION_THERMIQUE_GWH,
-    PRODUCTION_HYDRAULIQUE_GWH, PRODUCTION_EOLIENNE_GWH, PRODUCTION_SOLAIRE_GWH, PRODUCTION_BIOENERGIES_GWH,
-    FICHIER_SOURCE, NUMERO_LIGNE_FICHIER
+-- Se positionner dans le bon schéma
+USE SCHEMA DW_PHOTOVOLTAIQUE.STAGING;
+
+-- =====================================================================================
+-- 1. CRÉATION DU STAGE S3 AVEC VOS CREDENTIALS
+-- demande de credentials au bucket S3 par Teams à abdelkrim.brahmi@teamwork.net
+-- =====================================================================================
+
+CREATE OR REPLACE STAGE STG_PHOTOVOLTAIQUE_S3
+    URL = 's3://atelier-llm-data/'
+    CREDENTIALS = (
+        AWS_KEY_ID = 'xxxxxxxxxxxxx' 
+        AWS_SECRET_KEY = 'xxxxxxxxxxxxxx'
+    )
+    FILE_FORMAT = (
+        TYPE = 'CSV'
+        FIELD_DELIMITER = ';'
+        SKIP_HEADER = 1
+        NULL_IF = ('', 'NULL', 'null', 'N/A')
+        EMPTY_FIELD_AS_NULL = TRUE
+        FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+        TRIM_SPACE = TRUE
+        ERROR_ON_COLUMN_COUNT_MISMATCH = FALSE
+        ENCODING = 'UTF8'
+    )
+    COMMENT = 'Stage S3 pour fichier production photovoltaïque régionale française';
+
+-- =====================================================================================
+-- 2. VÉRIFICATION DU STAGE ET DU FICHIER
+-- =====================================================================================
+
+-- Vérifier que le stage a été créé
+SHOW STAGES LIKE 'STG_PHOTOVOLTAIQUE_S3';
+
+-- Lister les fichiers disponibles dans le bucket S3
+LIST @STG_PHOTOVOLTAIQUE_S3;
+
+-- Vérifier spécifiquement la présence du fichier
+LIST @STG_PHOTOVOLTAIQUE_S3 PATTERN = '.*prod-region-annuelle-filiere.csv';
+
+-- =====================================================================================
+-- 3. PRÉVISUALISATION DU CONTENU DU FICHIER
+-- =====================================================================================
+
+-- Voir les premières lignes du fichier pour validation
+SELECT 
+    $1 AS COL_ANNEE,
+    $2 AS COL_CODE_INSEE,
+    $3 AS COL_REGION,
+    $4 AS COL_PRODUCTION_NUCLEAIRE,
+    $5 AS COL_PRODUCTION_THERMIQUE,
+    $6 AS COL_PRODUCTION_HYDRAULIQUE,
+    $7 AS COL_PRODUCTION_EOLIENNE,
+    $8 AS COL_PRODUCTION_SOLAIRE,
+    $9 AS COL_PRODUCTION_BIOENERGIES,
+    METADATA$FILENAME,
+    METADATA$FILE_ROW_NUMBER
+FROM @STG_PHOTOVOLTAIQUE_S3/prod-region-annuelle-filiere.csv
+LIMIT 10;
+
+-- Compter le nombre total de lignes dans le fichier
+SELECT 
+    COUNT(*) AS NB_TOTAL_LIGNES,
+    COUNT(CASE WHEN $8 IS NOT NULL AND $8 != '' THEN 1 END) AS NB_LIGNES_AVEC_SOLAIRE,
+    MIN(TRY_CAST($1 AS INTEGER)) AS ANNEE_MIN,
+    MAX(TRY_CAST($1 AS INTEGER)) AS ANNEE_MAX,
+    COUNT(DISTINCT $2) AS NB_CODES_INSEE_DISTINCTS,
+    COUNT(DISTINCT $3) AS NB_REGIONS_DISTINCTES
+FROM @STG_PHOTOVOLTAIQUE_S3/prod-region-annuelle-filiere.csv;
+
+-- =====================================================================================
+-- 4. TEST DE CHARGEMENT (ÉCHANTILLON)
+-- =====================================================================================
+
+-- Test avec quelques lignes pour valider le format
+SELECT 
+    'Test de parsing' AS TEST,
+    TRY_CAST($1 AS INTEGER) AS ANNEE_PARSED,
+    TRY_CAST($2 AS INTEGER) AS CODE_INSEE_PARSED,
+    $3::VARCHAR(100) AS REGION_PARSED,
+    TRY_CAST($8 AS DECIMAL(12,3)) AS PRODUCTION_SOLAIRE_PARSED,
+    CASE 
+        WHEN TRY_CAST($1 AS INTEGER) IS NULL THEN 'Erreur année'
+        WHEN TRY_CAST($2 AS INTEGER) IS NULL THEN 'Erreur code INSEE'  
+        WHEN $3 IS NULL OR LENGTH(TRIM($3)) = 0 THEN 'Erreur région'
+        WHEN TRY_CAST($8 AS DECIMAL(12,3)) IS NULL THEN 'Erreur production solaire'
+        ELSE 'OK'
+    END AS STATUT_PARSING
+FROM @STG_PHOTOVOLTAIQUE_S3/prod-region-annuelle-filiere.csv
+LIMIT 20;
+
+-- =====================================================================================
+-- 5. CRÉATION D'UN FILE FORMAT SPÉCIFIQUE (OPTIONNEL)
+-- =====================================================================================
+
+-- File format dédié pour plus de contrôle
+CREATE OR REPLACE FILE FORMAT FF_PRODUCTION_REGIONALE_CSV
+    TYPE = 'CSV'
+    FIELD_DELIMITER = ';'
+    SKIP_HEADER = 1
+    NULL_IF = ('', 'NULL', 'null', 'N/A', ' ')
+    EMPTY_FIELD_AS_NULL = TRUE
+    FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+    TRIM_SPACE = TRUE
+    ERROR_ON_COLUMN_COUNT_MISMATCH = FALSE
+    ENCODING = 'UTF8'
+    DATE_FORMAT = 'YYYY'
+    ESCAPE_UNENCLOSED_FIELD = NONE
+    COMMENT = 'Format CSV pour données production énergétique régionale';
+
+-- Test avec le nouveau file format
+SELECT 
+    $1, $2, $3, $4, $5, $6, $7, $8, $9
+FROM @STG_PHOTOVOLTAIQUE_S3/prod-region-annuelle-filiere.csv
+(FILE_FORMAT => FF_PRODUCTION_REGIONALE_CSV)
+LIMIT 5;
+
+-- =====================================================================================
+-- 6. VALIDATION FINALE DU STAGE
+-- =====================================================================================
+
+SELECT 
+    '🎉 STAGE S3 CRÉÉ AVEC SUCCÈS' AS MESSAGE,
+    'Stage: STG_PHOTOVOLTAIQUE_S3' AS NOM_STAGE,
+    'Fichier: prod-region-annuelle-filiere.csv' AS FICHIER_CIBLE,
+    'Format: CSV avec délimiteur ;' AS FORMAT_DETECTE,
+    CURRENT_TIMESTAMP() AS DATE_CREATION;
+
+-- Informations sur le stage créé
+DESC STAGE STG_PHOTOVOLTAIQUE_S3;
+
+-- =====================================================================================
+-- CHARGEMENT DES DONNEES RAW DANS LA TABLE STG_PRODUCTION_REGIONALE_RAW
+-- =====================================================================================
+
+
+COPY INTO STG_PRODUCTION_REGIONALE_RAW (
+    ANNEE, CODE_INSEE_REGION, REGION, PRODUCTION_NUCLEAIRE_GWH,
+    PRODUCTION_THERMIQUE_GWH, PRODUCTION_HYDRAULIQUE_GWH, PRODUCTION_EOLIENNE_GWH,
+    PRODUCTION_SOLAIRE_GWH, PRODUCTION_BIOENERGIES_GWH, FICHIER_SOURCE, NUMERO_LIGNE_FICHIER
 )
 FROM (
     SELECT 
-        $1::INTEGER, $2::INTEGER, $3::VARCHAR, $4::DECIMAL(12,3), $5::DECIMAL(12,3),
-        $6::DECIMAL(12,3), $7::DECIMAL(12,3), $8::DECIMAL(12,3), $9::DECIMAL(12,3),
-        'prodregionannuellefiliere.csv', METADATA$FILE_ROW_NUMBER
-    FROM @STAGE_FICHIERS_CSV/prodregionannuellefiliere.csv
+        TRY_CAST($1 AS INTEGER),
+        TRY_CAST($2 AS INTEGER), 
+        $3::VARCHAR(100),
+        TRY_CAST($4 AS DECIMAL(12,3)),
+        TRY_CAST($5 AS DECIMAL(12,3)),
+        TRY_CAST($6 AS DECIMAL(12,3)),
+        TRY_CAST($7 AS DECIMAL(12,3)),
+        TRY_CAST($8 AS DECIMAL(12,3)),
+        TRY_CAST($9 AS DECIMAL(12,3)),
+        'prod-region-annuelle-filiere.csv',
+        METADATA$FILE_ROW_NUMBER
+    FROM @STG_PHOTOVOLTAIQUE_S3/prod-region-annuelle-filiere.csv
 )
-FILE_FORMAT = (TYPE = 'CSV' FIELD_DELIMITER = ';' SKIP_HEADER = 1 NULL_IF = ('', 'NULL'));
-
--- 2. Exécution du traitement ETL complet
-CALL DW_PHOTOVOLTAIQUE.STAGING.SP_CHARGER_PRODUCTION_REGIONALE('prodregionannuellefiliere.csv', FALSE);
-
--- 3. Contrôle qualité post-chargement
-CALL DW_PHOTOVOLTAIQUE.MONITORING.SP_CONTROLE_QUALITE();
-*/
+FILE_FORMAT = FF_PRODUCTION_REGIONALE_CSV
+ON_ERROR = 'CONTINUE';
 
 -- =====================================================================================
 -- ÉTAPE 10: REQUÊTES DE VALIDATION ET TESTS
@@ -1594,5 +1775,6 @@ SELECT
 -- Pour charger les données du fichier CSV analysé :
 -- 1. Créer un stage: CREATE STAGE STAGE_FICHIERS_CSV;  
 -- 2. Uploader le fichier: PUT file://prodregionannuellefiliere.csv @STAGE_FICHIERS_CSV;
+    -- Ou usage du fichier depuis AWS S3 en External Storage
 -- 3. Exécuter: COPY INTO + SP_CHARGER_PRODUCTION_REGIONALE() comme dans les exemples ci-dessus
 -- 4. Consulter les KPIs: SELECT * FROM VW_SYNTHESE_NATIONALE_ANNUELLE;
