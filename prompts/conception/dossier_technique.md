@@ -115,7 +115,7 @@ Enrichis la section architecture technique avec :
 ## 📋 Résultat Attendu
 
 Afin de nous aligner sur les étapes suivantes :
-- **Exemple de dossier technique produit** :  [dossier_technique](../../sample%20results/dossier_technique_resultat.md
+- **Exemple de dossier technique produit** :  [dossier_technique](../../sample%20results/dossier_technique_resultat.md)
 
 
 

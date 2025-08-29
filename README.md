@@ -100,7 +100,7 @@ prompts/
 ```
 
 ### 📊 Données d'Entraînement
-- **Fichier principal :** [`data/raw/prod-region-annuelle-filiere.csv`](./data/raw/prod-region-annuelle-filiere.csv)
+- **Fichier principal :** [`prod-region-annuelle-filiere.csv`](./data/raw/prod-region-annuelle-filiere.csv)
 - **Source :** Open Data Réseaux Énergies (ODRÉ)
 - **Contenu :** Production électrique annuelle par région et filière (2012-2024)
 
