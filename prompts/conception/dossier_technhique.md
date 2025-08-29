@@ -1,7 +1,7 @@
 # Activité 1.1 : Dossier de Conception Technique
 
 ## 🎯 Contexte d'Usage
-Produire rapidement un dossier de conception technique professionnel pour initialiser un projet Data et convaincre le client.
+Produire rapidement un dossier de conception technique professionnel pour initialiser un projet Data et le lancer efficacement.
 
 ## ⏱️ Temps Alloué
 20 minutes

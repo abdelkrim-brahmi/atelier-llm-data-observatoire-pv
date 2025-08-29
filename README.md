@@ -2,7 +2,7 @@
 ## Cas d'usage : Observatoire Photovoltaïque France 🌞
 
 ### 🎯 Objectif
-Apprendre à utiliser efficacement les LLM (Copilot, ChatGPT, Claude, etc.) pour accélérer les projets Data Engineering, de la conception à la livraison client.
+Apprendre à utiliser efficacement les Copilot (https://copilot.cloud.microsoft) pour accélérer les projets Data Engineering, de la conception à la livraison client.
 
 ### ⏱️ Format
 - **Durée :** 4 heures
@@ -15,7 +15,7 @@ Apprendre à utiliser efficacement les LLM (Copilot, ChatGPT, Claude, etc.) pour
 ## 🚀 Déroulement de l'Atelier
 
 ### 📋 Phase 1 : Conception (60 minutes)
-*Concevoir l'observatoire photovoltaïque avec l'aide de ChatGPT*
+*Concevoir l'observatoire photovoltaïque avec l'aide d'un LLM*
 
 #### 1.1 Dossier de Conception Technique (20 min)
 - **Objectif :** Produire un document de conception de 3-4 pages
@@ -39,7 +39,7 @@ Apprendre à utiliser efficacement les LLM (Copilot, ChatGPT, Claude, etc.) pour
 
 #### 2.1 Analyse des Sources + Modèle Cible (20 min)
 - **Objectif :** Modèle dimensionnel + mapping source-cible
-- **Ressources :** 📊 [Données CSV](./data/raw/) à upload dans ChatGPT
+- **Ressources :** 📊 [Données CSV](./data/raw/) à upload via l'interface du LLM
 - **Guide :** 👉 [Analyse Sources](./prompts/integration/analyse_sources.md)
 
 #### 2.2 Génération Pipeline Complet (30 min)
